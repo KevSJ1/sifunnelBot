@@ -30,7 +30,9 @@ up: env ## Build and start the whole stack (detached)
 	@echo "  API docs (local): http://localhost:$(API_PORT)/docs"
 
 vps-up: ## Build and start the production VPS stack with Caddy TLS
-	@test -f .env.docker || (echo "Missing .env.docker. Copy .env.vps.example and set real secrets/domain." && exit 1)
+	@test -f .env.docker || (echo "Missing .env.docker. Generating it now..." && ./scripts/generate-docker-env.sh && echo "Set SIFUNNEL_DOMAIN, FRONTEND_URL=https://your-domain and COOKIE_SECURE=true in .env.docker, then run make vps-up again." && exit 1)
+	@test "$$(grep -E '^SIFUNNEL_DOMAIN=' .env.docker | cut -d= -f2-)" != "localhost" || (echo "Set SIFUNNEL_DOMAIN to your real domain in .env.docker, then run make vps-up again." && exit 1)
+	@test "$$(grep -E '^COOKIE_SECURE=' .env.docker | cut -d= -f2-)" = "true" || (echo "Set COOKIE_SECURE=true in .env.docker, then run make vps-up again." && exit 1)
 	docker compose --env-file .env.docker -f docker-compose.yml -f docker-compose.vps.yml up --build -d
 
 vps-down: ## Stop the production VPS stack without removing volumes
