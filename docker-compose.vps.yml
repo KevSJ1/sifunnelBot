@@ -1,0 +1,24 @@
+# Production override for a single VPS.
+# Usage: docker compose --env-file .env.docker -f docker-compose.yml -f docker-compose.vps.yml up --build -d
+services:
+  db:
+    ports: !reset []
+
+  api:
+    ports: !reset []
+
+  proxy:
+    environment:
+      SIFUNNEL_DOMAIN: ${SIFUNNEL_DOMAIN:?Set SIFUNNEL_DOMAIN in .env.docker}
+    volumes:
+      - ./docker/Caddyfile.vps:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+
+volumes:
+  caddy_data:
+  caddy_config:
